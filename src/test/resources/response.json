@@ -1,0 +1,32 @@
+{
+	"items": [
+		{
+			"id": "id1",
+			"name": "test1",
+			"arr": [
+				{
+					"links": [
+						{
+							"rel": "link1",
+							"href": "href1"
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "id2",
+			"name": "test2",
+			"arr": [
+				{
+					"links": [
+						{
+							"rel": "link2",
+							"href": "href2"
+						}
+					]
+				}
+			]
+		}
+	]
+}
