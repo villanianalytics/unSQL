@@ -5,11 +5,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.villanianalytics.unsql</groupId>
 	<artifactId>unsql</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2-SNAPSHOT</version>
 
 	<name>UnSql</name>
 	<description>A Java utility to run SQL on unstructed file structures</description>
-	<url></url>
+	<url>https://github.com/villanianalytics/unSQL</url>
 	<packaging>jar</packaging>
 
 	<licenses>
@@ -20,14 +20,14 @@
 			<comments>A business-friendly OSS license</comments>
 		</license>
 	</licenses>
-	
+
 	<scm>
 		<connection>scm:git:git@github.com:villanianalytics/unSQL.git</connection>
 		<developerConnection>scm:git:git@github.com:villanianalytics/unSQL.git</developerConnection>
 		<url>git@github.com:villanianalytics/unSQL.git</url>
 		<tag>HEAD</tag>
 	</scm>
-	
+
 	<developers>
 		<developer>
 			<id>pmpfl</id>
@@ -141,6 +141,23 @@
 						<version>4.5.6</version>
 					</dependency>
 				</dependencies>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>1.6</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<executable>gpg</executable>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
