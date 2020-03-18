@@ -196,4 +196,26 @@ public class UnSqlTest {
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("link1"));
 	}
+	
+	@Test
+	public void testSqlJsonToJson() throws UnSqlException {
+		util.processFile(this.jsonResponse);
+
+		String sqlStatement = "select * from items.arr.links where items index 0 and arr index 0 and links index 0";
+		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.JSON);
+
+		assertNotNull(result);
+		assertTrue(result.contains("link1"));
+	}
+	
+	@Test
+	public void testSqlJsonToXml() throws UnSqlException {
+		util.processFile(this.jsonResponse);
+
+		String sqlStatement = "select * from items.arr.links where items index 0 and arr index 0 and links index 0";
+		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.XML);
+
+		assertNotNull(result);
+		assertTrue(result.contains("link1"));
+	}
 }

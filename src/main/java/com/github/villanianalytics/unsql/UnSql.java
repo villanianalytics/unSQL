@@ -46,12 +46,15 @@ import com.github.villanianalytics.unsql.model.SelectStatement;
 import com.github.villanianalytics.unsql.utils.Utils;
 import com.github.villanianalytics.unsql.validate.ValidateQuery;
 import com.github.wnameless.json.flattener.JsonFlattener;
+import com.github.wnameless.json.unflattener.JsonUnflattener;
 
 /**
  * The Class UnSql.
  */
 public class UnSql {
 
+	public enum EXPORT_FORMAT { XML, JSON }
+	
 	/** The flat str. */
 	private Map<String, Object> flatStr;
 
@@ -207,6 +210,42 @@ public class UnSql {
 		return soapDatainJsonObject.toString();
 	}
 
+	
+	public String executeQuery(String query, EXPORT_FORMAT format) throws UnSqlException {
+		List<Result> results = executeQuery(query);
+		
+		String flatValue = convertResultsToString(results);
+		
+		String json = JsonUnflattener.unflatten("{" + flatValue + "}");
+		
+		return exportResult(json, format);
+	}
+	
+	
+	private String convertResultsToString(List<Result> results) {
+		List<String> values = new ArrayList<>();
+		results.forEach(r -> values.addAll(r.getResults().entrySet()
+                .stream()
+                .map(entry -> ("\""+entry.getKey()+"\":\""+ entry.getValue())+"\"")
+                .sorted()
+                .collect(Collectors.toList())));
+		
+		return values.stream().map(Object::toString).collect(Collectors.joining(","));
+	}
+	
+	private String exportResult(String json, EXPORT_FORMAT format) {
+		String result = "";
+		JSONObject jsonFormat = new JSONObject(json);
+		
+		if (format == EXPORT_FORMAT.XML) {
+			result = XML.toString(jsonFormat);
+		} else if (format == EXPORT_FORMAT.JSON) {
+			result = jsonFormat.toString();
+		}
+		
+		return result;
+	}
+    
 	/**
 	 * Execute query.
 	 *
