@@ -2,6 +2,7 @@ package com.github.villanianalytics.unsql;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -217,5 +218,29 @@ public class UnSqlTest {
 
 		assertNotNull(result);
 		assertTrue(result.contains("link1"));
+	}
+	
+	@Test
+	public void testEmptyToXML() throws UnSqlException {
+		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\", \"desc\": \"1\"},{\"name\": \"test2\", \"id\": \"2\", \"desc\": \"3\"}]}";
+
+		util.processFile(rawJson);
+
+		String sqlStatement = "select id from items where name='tett'";
+		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.XML);
+
+		assertEquals("", result);
+	}
+	
+	@Test
+	public void testEmptyToJson() throws UnSqlException {
+		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\", \"desc\": \"1\"},{\"name\": \"test2\", \"id\": \"2\", \"desc\": \"3\"}]}";
+
+		util.processFile(rawJson);
+
+		String sqlStatement = "select id from items where name='tett'";
+		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.JSON);
+
+		assertEquals("{}", result);
 	}
 }
