@@ -1,5 +1,6 @@
 package com.github.villanianalytics.unsql.condition.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -18,7 +19,7 @@ public class In implements Condition {
 	private static final String IN_DELIMITER = "in";
 	
 	/** The Constant IN_PATTERN. */
-	private static final Pattern IN_PATTERN = Pattern.compile(".* " + IN_DELIMITER + " (.*)");
+	private static final Pattern IN_PATTERN = Pattern.compile(".*\\s" + IN_DELIMITER + "\\s\\[.*\\]");
 
 	/** The elements extract. */
 	private ElementsExtract elementsExtract;
@@ -59,10 +60,13 @@ public class In implements Condition {
 			List<String> valTwos = elementsExtract.getElementValue(input, whereClause, IN_DELIMITER, 1);
 
 			List<String> arr = Arrays.asList(valTwos.get(0).split(","));
-
+			
+			List<String> elementValues = new ArrayList<>();
+			arr.forEach(a -> elementValues.addAll(elementsExtract.extractValue(input, a)));
+			
 			boolean valid = false;
 			for (String valOne : valOnes) {
-				boolean va = arr.stream().anyMatch(str -> str.trim().equals(valOne));
+				boolean va = elementValues.stream().anyMatch(str -> str.trim().equals(valOne));
 				if (va)
 					valid = true;
 			}

@@ -37,10 +37,6 @@ public class ValidateQuery {
 	 * @throws UnSqlException the un sql exception
 	 */
 	public void validateSelect(SelectStatement select) throws UnSqlException {
-	
-		if (!(select.getFrom() != null && select.getFrom().trim().length() > 0)){
-			throw new UnSqlException("From table not defined");
-		}
 		
 		if (select.getSelectElements() == null || select.getSelectElements().isEmpty()) {
 			throw new UnSqlException("No Elements defined to select");

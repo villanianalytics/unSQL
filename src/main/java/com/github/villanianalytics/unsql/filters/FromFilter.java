@@ -1,5 +1,6 @@
 package com.github.villanianalytics.unsql.filters;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -15,7 +16,8 @@ import com.github.villanianalytics.unsql.utils.Utils;
  */
 public class FromFilter {
 
-
+	 
+	private static final String FILE_ROOT = "*";
 	/**
 	 * Filter json by from element.
 	 *
@@ -24,6 +26,13 @@ public class FromFilter {
 	 * @return the map
 	 */
 	public Map<String, List<String>> filterJsonByFromElement(List<String> results, String fromElement) {
+		
+		if (FILE_ROOT.equalsIgnoreCase(fromElement)) {
+			 Map<String, List<String>> map = new HashMap<>();
+			 map.put(FILE_ROOT, results);
+			return map;
+		}
+		
 		String arrayPattern = fromElement.replace(".", "(\\[.*?\\].|.)") + "\\[.*?\\]";
 		String objectPattern = fromElement.replace(".", "(\\[.*?\\].|.)") + "(\\[.*?\\]|)";
 

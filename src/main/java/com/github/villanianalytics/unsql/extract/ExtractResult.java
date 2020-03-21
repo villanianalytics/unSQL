@@ -29,16 +29,9 @@ public class ExtractResult {
 	public ExtractResult(List<AggregateFunction> aggreateFunctions) {
 		this.aggreateFunctions = aggreateFunctions;
 	}
-
-	/**
-	 * Extract from array.
-	 *
-	 * @param fromElement the from element
-	 * @param selectElements the select elements
-	 * @param resultList the result list
-	 * @return the list
-	 */
-	public List<Result> extractFromArray(String fromElement, List<String> selectElements,
+	
+	
+	public List<Result> extract(String fromElement, List<String> selectElements,
 			List<String> resultList) {
 		Map<String, List<String>> orderJsonArray = groupResultsList(fromElement, resultList);
 
@@ -65,7 +58,7 @@ public class ExtractResult {
 	 * @param jsonList the json list
 	 * @return the result
 	 */
-	public Result extractFromObj(String fromElement, List<String> selectElements, List<String> jsonList) {
+	private Result extractFromObj(String fromElement, List<String> selectElements, List<String> jsonList) {
 		Map<String, String> resultSet = new HashMap<>();
 		List<Pattern> elementsToSelect = generateSelectPatterns(selectElements, fromElement);
 
@@ -88,7 +81,7 @@ public class ExtractResult {
 	 * @return the list
 	 */
 	private List<Pattern> generateSelectPatterns(List<String> selectElements, String fromElement) {
-		String preparedFrom = fromElement.replace(".", "(\\[\\d{1,3}\\].|.)") + "(\\[\\d{1,3}\\].|.)";
+		String preparedFrom = fromElement.equalsIgnoreCase("*") ? ".*" : fromElement.replace(".", "(\\[\\d{1,3}\\].|.)") + "(\\[\\d{1,3}\\].|.)";
 
 		AggregateFunction aggregateFunction = getAggreateFunction(selectElements);
 
@@ -124,7 +117,8 @@ public class ExtractResult {
 	 * @return the map
 	 */
 	private Map<String, List<String>> groupResultsList(String fromElement, List<String> resultList) {
-		String orderPatternStr = fromElement.replace(".", "(\\[.*?\\].|.)") + "\\[.*?\\]";
+		String orderPatternStr = fromElement.equalsIgnoreCase("*") ? ".+?(?==)" : 
+			fromElement.replace(".", "(\\[.*?\\].|.)") + "(\\[.*?\\]|.|=)";
 		Pattern orderPattern = Pattern.compile(orderPatternStr);
 
 		return resultList.stream().collect(Collectors.groupingBy(s -> {

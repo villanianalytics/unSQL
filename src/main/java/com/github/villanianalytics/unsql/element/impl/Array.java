@@ -19,7 +19,7 @@ public class Array implements Element {
 	 */
 	@Override
 	public boolean isValid(String element) {
-		return (element.startsWith("(") && element.endsWith(")"));
+		return (element.startsWith("[") && element.endsWith("]"));
 	}
 
 	/**

@@ -33,13 +33,13 @@ public class NotInTest {
 	
 	@Test
 	public void testValidWhere() {
-		boolean valid = notIn.isValid("test.test notin (1,2)");
+		boolean valid = notIn.isValid("test.test notin [1,2]");
 		assertTrue(valid);
 	}
 	
 	@Test
 	public void testValidPredicate() {
-		Predicate<String> predicate = notIn.generate("test.test notin (1,2)");
+		Predicate<String> predicate = notIn.generate("test.test notin [1,2]");
 		assertNotNull(predicate);
 		
 		List<String> objects = Arrays.asList(new String[]{"test.test=2,testsss.test=1","testa=1,test[1].test=2"});
@@ -51,7 +51,7 @@ public class NotInTest {
 	
 	@Test
 	public void testValidPredicateOneElement() {
-		Predicate<String> predicate = notIn.generate("test.test notin (1)");
+		Predicate<String> predicate = notIn.generate("test.test notin [1]");
 		assertNotNull(predicate);
 		
 		List<String> objects = Arrays.asList(new String[]{"test.test=1,testsss.test=1","testa=1,test[1].test=2"});

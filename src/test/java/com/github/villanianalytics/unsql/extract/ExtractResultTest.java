@@ -27,7 +27,7 @@ public class ExtractResultTest {
 		List<String> selectElements = Arrays.asList("test4", "test5", "test6");
 		List<String> input = Arrays.asList("test.test3[3].testt=1", "test.test2[1].test3[1].test4=10", "test.test2[1].test3[1].test5=20");
 		
-		List<Result> results = extractResult.extractFromArray(fromElement,selectElements, input);
+		List<Result> results = extractResult.extract(fromElement,selectElements, input);
 		
 		assertEquals(1, results.size());
 	}
@@ -38,7 +38,7 @@ public class ExtractResultTest {
 		List<String> selectElements = Arrays.asList("test4", "test5", "test6");
 		List<String> input = Arrays.asList("test.test2[1].test3[1].test6=1", "test.test2[1].test3[2].test4=10", "test.test2[1].test3[1].test5=20");
 		
-		List<Result> results = extractResult.extractFromArray(fromElement, selectElements, input);
+		List<Result> results = extractResult.extract(fromElement, selectElements, input);
 		
 		assertEquals(2, results.size());
 	}
@@ -49,7 +49,7 @@ public class ExtractResultTest {
 		List<String> selectElements = Arrays.asList("test4", "test5", "test6");
 		List<String> input = Arrays.asList("test.test2[1].test3[1].test4[1]=1", "test.test2[1].test3[2].test4[2]=10", "test.test2[1].test3[1].test5=20");
 		
-		List<Result> results = extractResult.extractFromArray(fromElement, selectElements, input);
+		List<Result> results = extractResult.extract(fromElement, selectElements, input);
 		
 		assertEquals(2, results.size());	
 	}

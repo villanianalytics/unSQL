@@ -1,5 +1,6 @@
 package com.github.villanianalytics.unsql.extract;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -33,6 +34,12 @@ public class ElementsExtract {
 		String[] rawEles = whereClause.split(delimiter);
 		
 		return Arrays.asList(getElement(rawEles[0].trim()), getElement(rawEles[1].trim()));
+	}
+	
+	public List<String> extractValue(String rawValue, String where) {
+		Element e = getElement(where.trim());
+		
+		return e!= null ? e.getValue(rawValue, where) : new ArrayList<>();
 	}
 	
 	/**

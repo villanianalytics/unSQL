@@ -30,7 +30,7 @@ public class SelectStatement {
 	 */
 	public String getFrom() {
 		String from = StringUtils.substringBetween(select + " ", "from ", " ");
-		return from != null ? from.trim() : null;
+		return from != null ? from.trim().toLowerCase() : "";
 	}
 
 	/**

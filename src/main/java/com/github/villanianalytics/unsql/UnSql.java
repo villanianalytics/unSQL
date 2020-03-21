@@ -43,7 +43,6 @@ import com.github.villanianalytics.unsql.filters.FromFilter;
 import com.github.villanianalytics.unsql.filters.QueryFilters;
 import com.github.villanianalytics.unsql.model.Result;
 import com.github.villanianalytics.unsql.model.SelectStatement;
-import com.github.villanianalytics.unsql.utils.Utils;
 import com.github.villanianalytics.unsql.validate.ValidateQuery;
 import com.github.wnameless.json.flattener.JsonFlattener;
 import com.github.wnameless.json.unflattener.JsonUnflattener;
@@ -53,7 +52,10 @@ import com.github.wnameless.json.unflattener.JsonUnflattener;
  */
 public class UnSql {
 
-	public enum EXPORT_FORMAT { XML, JSON }
+	/**
+	 * The Enum EXPORT_FORMAT.
+	 */
+	public enum EXPORT_FORMAT { XML, JSON, VALUES, TEXT }
 	
 	/** The flat str. */
 	private Map<String, Object> flatStr;
@@ -211,17 +213,91 @@ public class UnSql {
 	}
 
 	
+	/**
+	 * Execute query.
+	 *
+	 * @param query the query
+	 * @param format the format
+	 * @return the string
+	 * @throws UnSqlException the un sql exception
+	 */
 	public String executeQuery(String query, EXPORT_FORMAT format) throws UnSqlException {
+		String ret;
 		List<Result> results = executeQuery(query);
 		
-		String flatValue = convertResultsToString(results);
+		switch (format) {
+			case XML:
+				ret = exportToXML(results);
+			break;
+			case JSON:
+				ret = exportToJson(results);
+			break;
+			case VALUES:
+				ret = exportToValue(results);
+			break;
+			case TEXT:
+				ret = convertResultsToString(results);
+			break;
+			default:
+				ret = convertResultsToString(results);
+			break;
+		}
 		
-		String json = JsonUnflattener.unflatten("{" + flatValue + "}");
-		
-		return exportResult(json, format);
+		return ret;
 	}
 	
 	
+	/**
+	 * Export to json.
+	 *
+	 * @param results the results
+	 * @return the string
+	 */
+	private String exportToJson(List<Result> results) {
+		String flatValue = convertResultsToString(results);
+		String json = JsonUnflattener.unflatten("{" + flatValue + "}");
+		JSONObject jsonFormat = new JSONObject(json);
+		
+		return jsonFormat.toString();
+	}
+	
+	/**
+	 * Export to XML.
+	 *
+	 * @param results the results
+	 * @return the string
+	 */
+	private String exportToXML(List<Result> results) {
+		String flatValue = convertResultsToString(results);
+		String json = JsonUnflattener.unflatten("{" + flatValue + "}");
+		JSONObject jsonFormat = new JSONObject(json);
+		
+		return XML.toString(jsonFormat);
+	}
+	
+	/**
+	 * Export to value.
+	 *
+	 * @param results the results
+	 * @return the string
+	 */
+	private String exportToValue(List<Result> results) {
+		List<String> values = new ArrayList<>();
+		results.forEach(r -> values.addAll(r.getResults().entrySet()
+                .stream()
+                .map(entry -> (entry.getValue() + "|"))
+                .sorted()
+                .collect(Collectors.toList())));
+		
+		return values.stream().map(o -> o.trim().substring(0, o.length() - 1)).collect(Collectors.joining("\n"));
+	}
+	 
+	/**
+	 * Convert results to string.
+	 *
+	 * @param results the results
+	 * @return the string
+	 */
 	private String convertResultsToString(List<Result> results) {
 		List<String> values = new ArrayList<>();
 		results.forEach(r -> values.addAll(r.getResults().entrySet()
@@ -231,19 +307,6 @@ public class UnSql {
                 .collect(Collectors.toList())));
 		
 		return values.stream().map(Object::toString).collect(Collectors.joining(","));
-	}
-	
-	private String exportResult(String json, EXPORT_FORMAT format) {
-		String result = "";
-		JSONObject jsonFormat = new JSONObject(json);
-		
-		if (format == EXPORT_FORMAT.XML) {
-			result = XML.toString(jsonFormat);
-		} else if (format == EXPORT_FORMAT.JSON) {
-			result = jsonFormat.toString();
-		}
-		
-		return result;
 	}
     
 	/**
@@ -278,14 +341,9 @@ public class UnSql {
 
 		List<String> resultsJson = filterfromJson.values().stream().flatMap(List::stream).collect(Collectors.toList());
 
-		List<Result> results = Utils.isFromAnArray(selectStatement.getFrom(), resultsJson)
-				? extractResult.extractFromArray(selectStatement.getFrom(), selectStatement.getSelectElements(),
-						resultsJson)
-				: Arrays.asList(extractResult.extractFromObj(selectStatement.getFrom(),
-						selectStatement.getSelectElements(), resultsJson));
+		List<Result> results = extractResult.extract(selectStatement.getFrom(), selectStatement.getSelectElements(), resultsJson);
 
 		return results.stream().filter(r -> r.getResults().size() > 0).collect(Collectors.toList());
-
 	}
 
 	/**

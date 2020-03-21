@@ -14,7 +14,7 @@ import com.github.villanianalytics.unsql.extract.ElementsExtract;
 public class Like implements Condition {
 
 	/** The Constant LIKE_DELIMITER. */
-	private static final String LIKE_DELIMITER = "notin";
+	private static final String LIKE_DELIMITER = "like";
 	
 	/** The Constant LIKE_PATTERN. */
 	private static final Pattern LIKE_PATTERN = Pattern.compile(".* " + LIKE_DELIMITER + " .*");

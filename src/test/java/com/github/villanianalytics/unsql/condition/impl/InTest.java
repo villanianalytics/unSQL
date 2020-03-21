@@ -32,17 +32,17 @@ public class InTest {
 
 	@Test
 	public void testValidWhere() {
-		boolean valid = in.isValid("test.test in (1,2)");
+		boolean valid = in.isValid("test.test in [1,2]");
 		assertTrue(valid);
 	}
 
 	@Test
 	public void testValidPredicate() {
-		Predicate<String> predicate = in.generate("test.test in (1,2)");
+		Predicate<String> predicate = in.generate("test.test in ['1','2']");
 		assertNotNull(predicate);
 
 		List<String> objects = Arrays
-				.asList(new String[] { "test.test=2", "testsss.test=1", "testa=1", "test[1].test=2" });
+				.asList(new String[] { "test.test=2", "test[1].test=2" });
 
 		List<String> filteredObjects = objects.stream().filter(predicate).collect(Collectors.toList());
 
@@ -51,7 +51,7 @@ public class InTest {
 
 	@Test
 	public void testValidPredicateOneElement() {
-		Predicate<String> predicate = in.generate("test.test in (1)");
+		Predicate<String> predicate = in.generate("test.test in [1]");
 		assertNotNull(predicate);
 
 		List<String> objects = Arrays
