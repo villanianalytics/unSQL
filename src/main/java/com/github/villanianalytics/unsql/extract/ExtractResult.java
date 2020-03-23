@@ -1,7 +1,7 @@
 package com.github.villanianalytics.unsql.extract;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -59,10 +59,10 @@ public class ExtractResult {
 	 * @return the result
 	 */
 	private Result extractFromObj(String fromElement, List<String> selectElements, List<String> jsonList) {
-		Map<String, String> resultSet = new HashMap<>();
+		Map<String, String> resultSet = new LinkedHashMap<>();
 		List<Pattern> elementsToSelect = generateSelectPatterns(selectElements, fromElement);
-
-		jsonList.forEach(element -> elementsToSelect.forEach(pattern -> {
+		
+		elementsToSelect.forEach(pattern -> jsonList.forEach(element -> {
 			Matcher m = pattern.matcher(element);
 			if (!m.lookingAt())
 				return;
@@ -90,7 +90,7 @@ public class ExtractResult {
 				element = aggregateFunction.extractElementToSelect(element);
 			}
 
-			String patternStr = preparedFrom + element.trim();
+			String patternStr = preparedFrom + element.trim() +"=";
 			return Pattern.compile(patternStr);
 
 		}).collect(Collectors.toList());

@@ -283,13 +283,9 @@ public class UnSql {
 	 */
 	private String exportToValue(List<Result> results) {
 		List<String> values = new ArrayList<>();
-		results.forEach(r -> values.addAll(r.getResults().entrySet()
-                .stream()
-                .map(entry -> (entry.getValue() + "|"))
-                .sorted()
-                .collect(Collectors.toList())));
+		results.forEach(r -> values.add(String.join("|", r.getResults().values())));
 		
-		return values.stream().map(o -> o.trim().substring(0, o.length() - 1)).collect(Collectors.joining("\n"));
+		return String.join("\n", values);
 	}
 	 
 	/**

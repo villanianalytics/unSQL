@@ -121,6 +121,24 @@ public class UnSqlTest {
 
 		assertEquals("{\"object\":{\"c\":\"d\"}}", jsonResult);
 	}
+	
+	@Test
+	public void testSqlJsonQueryValues() throws UnSqlException {
+		String rawJson = "{\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
+
+		util.processFile(rawJson);
+
+		String sqlStatement = "select c, a from object where object.a = 'b'";
+
+		List<Result> results = util.executeQuery(sqlStatement);
+
+		assertEquals(1, results.size());
+		assertTrue(results.get(0).getResults().containsValue("d"));
+		
+		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.VALUES);
+
+		assertEquals("d|b", jsonResult);
+	}
 
 	@Test
 	public void testSqlJsonQueryDifferent() throws UnSqlException {
