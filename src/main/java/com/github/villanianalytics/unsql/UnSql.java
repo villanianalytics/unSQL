@@ -55,7 +55,7 @@ public class UnSql {
 	/**
 	 * The Enum EXPORT_FORMAT.
 	 */
-	public enum EXPORT_FORMAT { XML, JSON, VALUES, TEXT }
+	public enum EXPORT_FORMAT {XML, JSON, VALUES, TEXT }
 	
 	/** The flat str. */
 	private Map<String, Object> flatStr;
@@ -75,19 +75,22 @@ public class UnSql {
 	/** The validate query. */
 	private ValidateQuery validateQuery;
 	
-	/** The row delimiter */
+	/**  The row delimiter. */
 	private String rowDelimiter = "|";
 	
-	/** The result delimiter */
+	/**  The result delimiter. */
 	private String resultDelimiter = "\n";
 	
-	/** The result with headears */
+	/**  The result with headears. */
 	private boolean headers = false;
 	
+	/** The export format. */
 	private EXPORT_FORMAT exportFormat = EXPORT_FORMAT.VALUES;
 
 	/**
 	 * Instantiates a new un sql util.
+	 *
+	 * @param input the input
 	 */
 	public UnSql(String input) {
 		List<Element> elements = createListElements();
@@ -105,21 +108,45 @@ public class UnSql {
 		processFile(input);
 	}
 	
+	/**
+	 * With export format.
+	 *
+	 * @param format the format
+	 * @return the un sql
+	 */
 	public UnSql withExportFormat(EXPORT_FORMAT format) {
 		this.setExportFormat(format);
 	    return this;
 	}
 	
+	/**
+	 * With row delimiter.
+	 *
+	 * @param rowDelimiter the row delimiter
+	 * @return the un sql
+	 */
 	public UnSql withRowDelimiter(String rowDelimiter) {
 		this.setRowDelimiter(rowDelimiter);
 	    return this;
 	}
 	
+	/**
+	 * With result delimiter.
+	 *
+	 * @param resultDelimiter the result delimiter
+	 * @return the un sql
+	 */
 	public UnSql withResultDelimiter(String resultDelimiter) {
 		this.setResultDelimiter(resultDelimiter);
 	    return this;
 	}
 	
+	/**
+	 * With headers.
+	 *
+	 * @param headers the headers
+	 * @return the un sql
+	 */
 	public UnSql withHeaders(boolean headers) {
 		this.setHeaders(headers);
 	    return this;
@@ -241,7 +268,6 @@ public class UnSql {
 	 * Execute query.
 	 *
 	 * @param query the query
-	 * @param format the format
 	 * @return the string
 	 * @throws UnSqlException the un sql exception
 	 */
@@ -333,6 +359,13 @@ public class UnSql {
 		return values.stream().map(Object::toString).collect(Collectors.joining(","));
 	}
 	
+	/**
+	 * Execute query.
+	 *
+	 * @param query the query
+	 * @return the list
+	 * @throws UnSqlException the un sql exception
+	 */
 	public List<Result> executeQuery(String query) throws UnSqlException {
 		return this.executeQuery(new SelectStatement(query));
 	}
@@ -340,7 +373,7 @@ public class UnSql {
 	/**
 	 * Execute query.
 	 *
-	 * @param query the query
+	 * @param selectStatement the select statement
 	 * @return the list
 	 * @throws UnSqlException the un sql exception
 	 */
@@ -382,34 +415,74 @@ public class UnSql {
 		return flatStrList;
 	}
 
+	/**
+	 * Gets the row delimiter.
+	 *
+	 * @return the row delimiter
+	 */
 	public String getRowDelimiter() {
 		return rowDelimiter;
 	}
 
+	/**
+	 * Sets the row delimiter.
+	 *
+	 * @param rowDelimiter the new row delimiter
+	 */
 	public void setRowDelimiter(String rowDelimiter) {
 		this.rowDelimiter = rowDelimiter;
 	}
 
+	/**
+	 * Gets the result delimiter.
+	 *
+	 * @return the result delimiter
+	 */
 	public String getResultDelimiter() {
 		return resultDelimiter;
 	}
 
+	/**
+	 * Sets the result delimiter.
+	 *
+	 * @param resultDelimiter the new result delimiter
+	 */
 	public void setResultDelimiter(String resultDelimiter) {
 		this.resultDelimiter = resultDelimiter;
 	}
 
+	/**
+	 * Gets the export format.
+	 *
+	 * @return the export format
+	 */
 	public EXPORT_FORMAT getExportFormat() {
 		return exportFormat;
 	}
 
+	/**
+	 * Sets the export format.
+	 *
+	 * @param exportFormat the new export format
+	 */
 	public void setExportFormat(EXPORT_FORMAT exportFormat) {
 		this.exportFormat = exportFormat;
 	}
 
+	/**
+	 * Checks if is headers.
+	 *
+	 * @return true, if is headers
+	 */
 	public boolean isHeaders() {
 		return headers;
 	}
 
+	/**
+	 * Sets the headers.
+	 *
+	 * @param headers the new headers
+	 */
 	public void setHeaders(boolean headers) {
 		this.headers = headers;
 	}
