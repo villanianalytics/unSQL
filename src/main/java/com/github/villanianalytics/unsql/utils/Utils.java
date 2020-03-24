@@ -13,9 +13,8 @@ public final class Utils {
 	public static final String REG_ALL = ".*";
 	public static final String REG_ARRAY = "\\[.*?\\]";
 	public static final String REG_ARRAY_OR_NOTHING = "(\\[.*?\\]|)";
-	public static final String REG_ARRAY_OR_OBJECT = "(\\[.*?\\].|.)";
+	public static final String REG_ARRAY_OR_OBJECT = "(\\[[0-9]{1,3}\\].|.)";
 	public static final String REG_END_OF_OBJECT = "(\\.|\\[|\\=)";
-	
 	
 	/**
 	 * Instantiates a new utils.

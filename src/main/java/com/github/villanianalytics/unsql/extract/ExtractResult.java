@@ -151,7 +151,7 @@ public class ExtractResult {
 				element = aggregateFunction.extractElementToSelect(element);
 			}
 
-			String patternStr = preparedFrom + element.trim() + Utils.REG_END_OF_OBJECT;
+			String patternStr = preparedFrom + (element.replace(".", Utils.REG_ARRAY_OR_OBJECT)).trim() + Utils.REG_END_OF_OBJECT;
 			patterns.put(element, Pattern.compile(patternStr));
 		}
 		
