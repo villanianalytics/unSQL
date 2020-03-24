@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.github.villanianalytics.unsql.aggregate.impl.Everything;
 import com.github.villanianalytics.unsql.utils.Utils;
 
 /**
@@ -16,8 +17,6 @@ import com.github.villanianalytics.unsql.utils.Utils;
  */
 public class FromFilter {
 
-	 
-	private static final String FILE_ROOT = "*";
 	/**
 	 * Filter json by from element.
 	 *
@@ -27,14 +26,14 @@ public class FromFilter {
 	 */
 	public Map<String, List<String>> filterJsonByFromElement(List<String> results, String fromElement) {
 		
-		if (FILE_ROOT.equalsIgnoreCase(fromElement)) {
+		if (Everything.EVERYTHING_SYMBOL.equalsIgnoreCase(fromElement)) {
 			 Map<String, List<String>> map = new HashMap<>();
-			 map.put(FILE_ROOT, results);
+			 map.put(Everything.EVERYTHING_SYMBOL, results);
 			return map;
 		}
 		
-		String arrayPattern = fromElement.replace(".", "(\\[.*?\\].|.)") + "\\[.*?\\]";
-		String objectPattern = fromElement.replace(".", "(\\[.*?\\].|.)") + "(\\[.*?\\]|)";
+		String arrayPattern = fromElement.replace(".", Utils.REG_ARRAY_OR_OBJECT) + Utils.REG_ARRAY;
+		String objectPattern = fromElement.replace(".", Utils.REG_ARRAY_OR_OBJECT) + Utils.REG_ARRAY_OR_NOTHING;
 
 		return extractFromArray(Utils.isFromAnArray(fromElement, results) ? arrayPattern : objectPattern, results);
 	}

@@ -52,6 +52,8 @@ public class Count implements AggregateFunction {
 		Map<String, String> map = new HashMap<>();
 		map.put(selectClause, String.valueOf(count));
 		
-		return Arrays.asList(new Result(map));
+		Map<String, Map<String, String>> resultsByPattern = new HashMap<>();
+		resultsByPattern.put(selectClause, map);
+		return Arrays.asList(new Result(map, resultsByPattern));
 	}
 }

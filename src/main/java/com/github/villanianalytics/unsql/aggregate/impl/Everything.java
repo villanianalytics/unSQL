@@ -1,3 +1,4 @@
+
 package com.github.villanianalytics.unsql.aggregate.impl;
 
 import java.util.List;
@@ -10,6 +11,8 @@ import com.github.villanianalytics.unsql.model.Result;
  */
 public class Everything implements AggregateFunction {
 	
+	public static final String EVERYTHING_SYMBOL = "*";
+	
 	/**
 	 * Checks if is valid.
 	 *
@@ -18,7 +21,7 @@ public class Everything implements AggregateFunction {
 	 */
 	@Override
 	public boolean isValid(String selectClause) {
-		return selectClause != null && selectClause.trim().startsWith("*");
+		return selectClause != null && selectClause.trim().startsWith(EVERYTHING_SYMBOL);
 	}
 
 	/**

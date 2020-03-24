@@ -55,6 +55,9 @@ public class Sum implements AggregateFunction {
 		Map<String, String> map = new HashMap<>();
 		map.put(selectClause, String.valueOf(sumVal));
 		
-		return Arrays.asList(new Result(map));
+		Map<String, Map<String, String>> resultsByPattern = new HashMap<>();
+		resultsByPattern.put(selectClause, map);
+		return Arrays.asList(new Result(map, resultsByPattern));
+
 	}
 }

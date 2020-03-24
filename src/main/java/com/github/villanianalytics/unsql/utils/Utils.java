@@ -8,8 +8,15 @@ import java.util.regex.Pattern;
 /**
  * The Class Utils.
  */
-public class Utils {
+public final class Utils {
 
+	public static final String REG_ALL = ".*";
+	public static final String REG_ARRAY = "\\[.*?\\]";
+	public static final String REG_ARRAY_OR_NOTHING = "(\\[.*?\\]|)";
+	public static final String REG_ARRAY_OR_OBJECT = "(\\[.*?\\].|.)";
+	public static final String REG_END_OF_OBJECT = "(\\.|\\[|\\=)";
+	
+	
 	/**
 	 * Instantiates a new utils.
 	 */
@@ -25,7 +32,7 @@ public class Utils {
 	 * @return true, if is from an array
 	 */
 	public static boolean isFromAnArray(String fromElement, List<String> results) {
-		String patternString = fromElement.replace(".", "(\\[.*?\\].|.)") + "\\[.*?\\]";
+		String patternString = fromElement.replace(".", Utils.REG_ARRAY_OR_OBJECT) + Utils.REG_ARRAY;
 		Pattern pattern = Pattern.compile(patternString);
 
 		Optional<String> result = results.stream().filter(x -> {
@@ -34,5 +41,9 @@ public class Utils {
 		}).findFirst();
 
 		return result.isPresent();
+	}
+	
+	public static String getHeaderName(String key) {
+		return key.substring(key.lastIndexOf('.') + 1);
 	}
 }

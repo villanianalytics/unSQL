@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.villanianalytics.unsql</groupId>
 	<artifactId>unsql</artifactId>
-	<version>0.0.7</version>
+	<version>0.0.8</version>
 
 	<name>UnSql</name>
 	<description>A Java utility to run SQL on unstructed file structures</description>

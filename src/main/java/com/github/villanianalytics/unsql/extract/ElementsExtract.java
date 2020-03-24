@@ -36,6 +36,13 @@ public class ElementsExtract {
 		return Arrays.asList(getElement(rawEles[0].trim()), getElement(rawEles[1].trim()));
 	}
 	
+	/**
+	 * Extract value.
+	 *
+	 * @param rawValue the raw value
+	 * @param where the where
+	 * @return the list
+	 */
 	public List<String> extractValue(String rawValue, String where) {
 		Element e = getElement(where.trim());
 		

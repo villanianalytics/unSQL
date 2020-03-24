@@ -74,11 +74,22 @@ public class UnSql {
 
 	/** The validate query. */
 	private ValidateQuery validateQuery;
+	
+	/** The row delimiter */
+	private String rowDelimiter = "|";
+	
+	/** The result delimiter */
+	private String resultDelimiter = "\n";
+	
+	/** The result with headears */
+	private boolean headers = false;
+	
+	private EXPORT_FORMAT exportFormat = EXPORT_FORMAT.VALUES;
 
 	/**
 	 * Instantiates a new un sql util.
 	 */
-	public UnSql() {
+	public UnSql(String input) {
 		List<Element> elements = createListElements();
 		List<AggregateFunction> aggregateFunctions = createListAggregateFunctions();
 		
@@ -89,16 +100,29 @@ public class UnSql {
 		this.queryFilters = createQueryFilters(conditions);
 		this.extractResult = createExtractResult(aggregateFunctions);
 		this.validateQuery = createValidateQuery(aggregateFunctions, conditions);
+		
+		
+		processFile(input);
 	}
 	
-	/**
-	 * Instantiates a new un sql.
-	 *
-	 * @param raw the raw
-	 */
-	public UnSql(String raw) {
-		this();
-		processFile(raw);
+	public UnSql withExportFormat(EXPORT_FORMAT format) {
+		this.setExportFormat(format);
+	    return this;
+	}
+	
+	public UnSql withRowDelimiter(String rowDelimiter) {
+		this.setRowDelimiter(rowDelimiter);
+	    return this;
+	}
+	
+	public UnSql withResultDelimiter(String resultDelimiter) {
+		this.setResultDelimiter(resultDelimiter);
+	    return this;
+	}
+	
+	public UnSql withHeaders(boolean headers) {
+		this.setHeaders(headers);
+	    return this;
 	}
 
 	/**
@@ -182,7 +206,7 @@ public class UnSql {
 	 */
 	public List<Result> runQuery(String raw, String query) throws UnSqlException {
 		this.processFile(raw);
-		return this.executeQuery(query);
+		return this.executeQuery(new SelectStatement(query));
 	}
 
 	/**
@@ -221,11 +245,13 @@ public class UnSql {
 	 * @return the string
 	 * @throws UnSqlException the un sql exception
 	 */
-	public String executeQuery(String query, EXPORT_FORMAT format) throws UnSqlException {
+	public String execute(String query) throws UnSqlException {
 		String ret;
-		List<Result> results = executeQuery(query);
 		
-		switch (format) {
+		SelectStatement selectStatement = new SelectStatement(query);
+		List<Result> results = executeQuery(selectStatement);
+		
+		switch (this.exportFormat) {
 			case XML:
 				ret = exportToXML(results);
 			break;
@@ -239,7 +265,7 @@ public class UnSql {
 				ret = convertResultsToString(results);
 			break;
 			default:
-				ret = convertResultsToString(results);
+				ret = exportToValue(results);
 			break;
 		}
 		
@@ -283,9 +309,11 @@ public class UnSql {
 	 */
 	private String exportToValue(List<Result> results) {
 		List<String> values = new ArrayList<>();
-		results.forEach(r -> values.add(String.join("|", r.getResults().values())));
+		List<String> headersList = !results.isEmpty() ? results.get(0).getHeaders(): new ArrayList<>();
 		
-		return String.join("\n", values);
+		results.forEach(r -> values.add(r.getResultByPattern(headersList,this.rowDelimiter)));
+		
+		return (headers ? String.join(this.rowDelimiter, headersList) + "\n" : "") + String.join(this.resultDelimiter, values);
 	}
 	 
 	/**
@@ -298,11 +326,15 @@ public class UnSql {
 		List<String> values = new ArrayList<>();
 		results.forEach(r -> values.addAll(r.getResults().entrySet()
                 .stream()
+                .filter(entry -> !StringUtils.isEmpty(entry.getValue()))
                 .map(entry -> ("\""+entry.getKey()+"\":\""+ entry.getValue())+"\"")
-                .sorted()
                 .collect(Collectors.toList())));
 		
 		return values.stream().map(Object::toString).collect(Collectors.joining(","));
+	}
+	
+	public List<Result> executeQuery(String query) throws UnSqlException {
+		return this.executeQuery(new SelectStatement(query));
 	}
     
 	/**
@@ -312,11 +344,10 @@ public class UnSql {
 	 * @return the list
 	 * @throws UnSqlException the un sql exception
 	 */
-	public List<Result> executeQuery(String query) throws UnSqlException {
+	private List<Result> executeQuery(SelectStatement selectStatement) throws UnSqlException {
 		if (flatStr == null)
 			throw new UnSqlException("File not defined");
-		SelectStatement selectStatement = new SelectStatement(query);
-
+		
 		validateQuery.validateSelect(selectStatement);
 
 		Map<String, List<String>> filterfromJson = fromFilter.filterJsonByFromElement(this.getFlatJsonList(),
@@ -349,5 +380,37 @@ public class UnSql {
 	 */
 	public List<String> getFlatJsonList() {
 		return flatStrList;
+	}
+
+	public String getRowDelimiter() {
+		return rowDelimiter;
+	}
+
+	public void setRowDelimiter(String rowDelimiter) {
+		this.rowDelimiter = rowDelimiter;
+	}
+
+	public String getResultDelimiter() {
+		return resultDelimiter;
+	}
+
+	public void setResultDelimiter(String resultDelimiter) {
+		this.resultDelimiter = resultDelimiter;
+	}
+
+	public EXPORT_FORMAT getExportFormat() {
+		return exportFormat;
+	}
+
+	public void setExportFormat(EXPORT_FORMAT exportFormat) {
+		this.exportFormat = exportFormat;
+	}
+
+	public boolean isHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(boolean headers) {
+		this.headers = headers;
 	}
 }

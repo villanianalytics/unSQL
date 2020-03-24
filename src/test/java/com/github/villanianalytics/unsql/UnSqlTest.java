@@ -20,12 +20,8 @@ import com.github.villanianalytics.unsql.model.Result;
 public class UnSqlTest {
 
 	private String jsonResponse;
-	private UnSql util;
-
 	@Before
 	public void setUp() throws IOException {
-		this.util = new UnSql();
-
 		File file = getFileFromResources("response.json");
 		this.jsonResponse = new String(Files.readAllBytes(file.toPath()));
 
@@ -47,7 +43,7 @@ public class UnSqlTest {
 	public void testSqlJsonParsing() {
 		String rawJson = "{\"foo\":\"foo1\",\"bar\":\"bar1\"}";
 
-		util.processFile(rawJson);
+		UnSql util = new UnSql(rawJson);
 
 		assertNotNull(util.getFlatJsonList());
 	}
@@ -56,7 +52,7 @@ public class UnSqlTest {
 	public void testSqlJsonParsingList() {
 		String rawJson = "{\"boolean\":true,\"color\":\"gold\",\"null\":null,\"number\":123,\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
 
-		util.processFile(rawJson);
+		UnSql util = new UnSql(rawJson);
 
 		assertNotNull(util.getFlatJsonList());
 	}
@@ -65,10 +61,8 @@ public class UnSqlTest {
 	public void testSqlJsonNoWhereClause() throws UnSqlException {
 		String rawJson = "{\"boolean\":true,\"color\":\"gold\",\"null\":null,\"number\":123,\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select c from object";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("d"));
@@ -78,15 +72,13 @@ public class UnSqlTest {
 	public void testSqlFromRoot() throws UnSqlException {
 		String rawJson = "{\"foo\":\"foo1\",\"bar\":\"bar1\"}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select foo from *";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("foo1"));
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.JSON);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.JSON).execute(sqlStatement);
 
 		assertEquals("{\"foo\":\"foo1\"}", jsonResult);
 	}
@@ -95,10 +87,8 @@ public class UnSqlTest {
 	public void testSqlFromRootBar() throws UnSqlException {
 		String rawJson = "{\"foo\":\"foo1\",\"bar\":\"bar1\"}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select bar from *";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("bar1"));
@@ -108,16 +98,14 @@ public class UnSqlTest {
 	public void testSqlJsonQuery() throws UnSqlException {
 		String rawJson = "{\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select c from object where object.a = 'b'";
 
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("d"));
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.JSON);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.JSON).execute(sqlStatement);
 
 		assertEquals("{\"object\":{\"c\":\"d\"}}", jsonResult);
 	}
@@ -126,29 +114,71 @@ public class UnSqlTest {
 	public void testSqlJsonQueryValues() throws UnSqlException {
 		String rawJson = "{\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select c, a from object where object.a = 'b'";
 
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("d"));
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.VALUES);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.VALUES).execute(sqlStatement);
 
 		assertEquals("d|b", jsonResult);
 	}
+	
+	@Test
+	public void testSqlJsonQueryValuesWithRowDelimiter() throws UnSqlException {
+		String rawJson = "{\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
 
+		String sqlStatement = "select c, a from object where object.a = 'b'";
+
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
+
+		assertEquals(1, results.size());
+		assertTrue(results.get(0).getResults().containsValue("d"));
+		
+		String jsonResult = new UnSql(rawJson).execute(sqlStatement);
+
+		assertEquals("d|b", jsonResult);
+	}
+	
+	@Test
+	public void testSqlJsonQueryValuesOrder() throws UnSqlException {
+		String rawJson = "{\"items\":[{\"name\": \"test1\", \"name1\": \"name1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
+
+		String sqlStatement = "select name, name1 from items";
+	//	List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
+
+	//	assertEquals(2, results.size());
+	//	assertTrue(results.get(0).getResults().containsValue("name1"));
+		
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.VALUES).execute(sqlStatement);
+
+		assertEquals("test1|name1\ntest2|", jsonResult);
+	}
+
+	
+	@Test
+	public void testSqlJsonQueryValuesWithDelimiters() throws UnSqlException {
+		String rawJson = "{\"items\":[{\"name\": \"test1\", \"name1\": \"name1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
+
+		String sqlStatement = "select name, name1 from items";
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
+
+		assertEquals(2, results.size());
+		assertTrue(results.get(0).getResults().containsValue("name1"));
+		
+		String jsonResult = new UnSql(rawJson).withResultDelimiter(";").withRowDelimiter("#").withExportFormat(EXPORT_FORMAT.VALUES).execute(sqlStatement);
+
+		assertEquals("test1#name1;test2#", jsonResult);
+	}
 	@Test
 	public void testSqlJsonQueryDifferent() throws UnSqlException {
 		String rawJson = "{\"object\":{\"a\":\"b\",\"c\":\"d\",\"array\":[1,2,3]},\"string\":\"Hello World\"}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select c from object where object.a <> 'b'";
 
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(0, results.size());
 	}
@@ -157,10 +187,8 @@ public class UnSqlTest {
 	public void testSqlSimpleJsonArrayQueryDifferent() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id from items where name <> 'test1'";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("2"));
@@ -170,10 +198,8 @@ public class UnSqlTest {
 	public void testSqlSimpleJsonArrayQuery() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id from items where name='test1' and id=1";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("1"));
@@ -181,10 +207,8 @@ public class UnSqlTest {
 
 	@Test
 	public void testSqlJsonArrayQuery() throws UnSqlException {
-		util.processFile(this.jsonResponse);
-
 		String sqlStatement = "select id from items where name='test1'";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(this.jsonResponse).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("id1"));
@@ -192,10 +216,8 @@ public class UnSqlTest {
 
 	@Test
 	public void testSqlJsonArrayQueryTwoElements() throws UnSqlException {
-		util.processFile(this.jsonResponse);
-
 		String sqlStatement = "select id, name from items where name='test1'";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(this.jsonResponse).executeQuery(sqlStatement);
 		for (Result set : results)
 			System.out.println(set.getResults());
 		assertEquals(1, results.size());
@@ -206,10 +228,8 @@ public class UnSqlTest {
 	public void testSqlSimpleJsonWhereOr() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id from items where name='test1' or id=2";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(2, results.size());
 		assertTrue(results.get(0).getResults().containsValue("1"));
@@ -219,15 +239,13 @@ public class UnSqlTest {
 	public void testSqlGreater() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id, name from items where id > 1";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("2"));
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"items[1].id\":\"2\",\"items[1].name\":\"test2\"", jsonResult);
 	}
@@ -235,16 +253,14 @@ public class UnSqlTest {
 	@Test
 	public void testSqlLess() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id, name from items where id < 2";
-		List<Result> results = util.executeQuery(sqlStatement);
+		
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("1"));
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"items[0].id\":\"1\",\"items[0].name\":\"test1\"", jsonResult);
 	}
@@ -252,16 +268,14 @@ public class UnSqlTest {
 	@Test
 	public void testSqlIn() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id, name from items where name in ['test1', 'test2']";
-		List<Result> results = util.executeQuery(sqlStatement);
+		
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(2, results.size());
 		assertTrue(results.get(0).getResults().containsValue("1"));
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"items[0].id\":\"1\",\"items[0].name\":\"test1\",\"items[1].id\":\"2\",\"items[1].name\":\"test2\"", jsonResult);
 	}
@@ -270,14 +284,12 @@ public class UnSqlTest {
 	public void testSqlNotIn() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id, name from items where name notin ['test1', 'test2']";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(0, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("", jsonResult);
 	}
@@ -285,15 +297,13 @@ public class UnSqlTest {
 	@Test
 	public void testSqlLike() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id, name from items where name like 'test'";
-		List<Result> results = util.executeQuery(sqlStatement);
+
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(2, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"items[0].id\":\"1\",\"items[0].name\":\"test1\",\"items[1].id\":\"2\",\"items[1].name\":\"test2\"", jsonResult);
 	}
@@ -301,15 +311,13 @@ public class UnSqlTest {
 	@Test
 	public void testSqlIndex() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id, name from items where items index 0";
-		List<Result> results = util.executeQuery(sqlStatement);
+
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"items[0].id\":\"1\",\"items[0].name\":\"test1\"", jsonResult);
 	}
@@ -317,15 +325,13 @@ public class UnSqlTest {
 	@Test
 	public void testSqlMax() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select max(id) from items";
-		List<Result> results = util.executeQuery(sqlStatement);
+
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"max(id)\":\"2.0\"", jsonResult);
 	}
@@ -333,15 +339,13 @@ public class UnSqlTest {
 	@Test
 	public void testSqlMaxValue() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select max(id) from items";
-		List<Result> results = util.executeQuery(sqlStatement);
+
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.VALUES);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.VALUES).execute(sqlStatement);
 
 		assertEquals("2.0", jsonResult);
 	}
@@ -349,15 +353,13 @@ public class UnSqlTest {
 	@Test
 	public void testSqlMin() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select min(id) from items";
-		List<Result> results = util.executeQuery(sqlStatement);
+		
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"min(id)\":\"1.0\"", jsonResult);
 	}
@@ -366,14 +368,12 @@ public class UnSqlTest {
 	public void testSqlSum() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select sum(id) from items";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"sum(id)\":\"3.0\"", jsonResult);
 	}
@@ -382,14 +382,12 @@ public class UnSqlTest {
 	public void testSqlCount() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select count(id) from items";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"count(id)\":\"2\"", jsonResult);
 	}
@@ -398,14 +396,12 @@ public class UnSqlTest {
 	public void testSqlAvg() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\"},{\"name\": \"test2\", \"id\": \"2\"}]}";
 
-		util.processFile(rawJson);
-
 		String sqlStatement = "select avg(id) from items";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		
-		String jsonResult = util.executeQuery(sqlStatement, EXPORT_FORMAT.TEXT);
+		String jsonResult = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.TEXT).execute(sqlStatement);
 
 		assertEquals("\"avg(id)\":\"1.5\"", jsonResult);
 	}
@@ -413,11 +409,9 @@ public class UnSqlTest {
 	@Test
 	public void testSqlSimpleJsonWhereOrParen() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\", \"desc\": \"1\"},{\"name\": \"test2\", \"id\": \"2\", \"desc\": \"3\"}]}";
-
-		util.processFile(rawJson);
-
+		
 		String sqlStatement = "select id from items where name='test1' or (id=2 and desc=1)";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(rawJson).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("1"));
@@ -425,10 +419,8 @@ public class UnSqlTest {
 
 	@Test
 	public void testSqlJsonMultipleIndex() throws UnSqlException {
-		util.processFile(this.jsonResponse);
-
 		String sqlStatement = "select rel,href from items.arr.links where items index 0 and arr index 0 and links index 0";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(jsonResponse).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("href1"));
@@ -436,10 +428,8 @@ public class UnSqlTest {
 
 	@Test
 	public void testSqlJsonSelectEverythingMultipleIndex() throws UnSqlException {
-		util.processFile(this.jsonResponse);
-
 		String sqlStatement = "select * from items.arr.links where items index 0 and arr index 0 and links index 0";
-		List<Result> results = util.executeQuery(sqlStatement);
+		List<Result> results = new UnSql(jsonResponse).executeQuery(sqlStatement);
 
 		assertEquals(1, results.size());
 		assertTrue(results.get(0).getResults().containsValue("link1"));
@@ -447,10 +437,8 @@ public class UnSqlTest {
 	
 	@Test
 	public void testSqlJsonToJson() throws UnSqlException {
-		util.processFile(this.jsonResponse);
-
 		String sqlStatement = "select * from items.arr.links where items index 0 and arr index 0 and links index 0";
-		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.JSON);
+		String result = new UnSql(jsonResponse).withExportFormat(EXPORT_FORMAT.JSON).execute(sqlStatement);
 
 		assertNotNull(result);
 		assertTrue(result.contains("link1"));
@@ -458,10 +446,8 @@ public class UnSqlTest {
 	
 	@Test
 	public void testSqlJsonToXml() throws UnSqlException {
-		util.processFile(this.jsonResponse);
-
 		String sqlStatement = "select * from items.arr.links where items index 0 and arr index 0 and links index 0";
-		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.XML);
+		String result = new UnSql(jsonResponse).withExportFormat(EXPORT_FORMAT.XML).execute(sqlStatement);
 
 		assertNotNull(result);
 		assertTrue(result.contains("link1"));
@@ -470,11 +456,9 @@ public class UnSqlTest {
 	@Test
 	public void testEmptyToXML() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\", \"desc\": \"1\"},{\"name\": \"test2\", \"id\": \"2\", \"desc\": \"3\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id from items where name='tett'";
-		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.XML);
+		
+		String result = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.XML).execute(sqlStatement);
 
 		assertEquals("", result);
 	}
@@ -482,11 +466,9 @@ public class UnSqlTest {
 	@Test
 	public void testEmptyToJson() throws UnSqlException {
 		String rawJson = "{\"items\":[{\"name\": \"test1\", \"id\": \"1\", \"desc\": \"1\"},{\"name\": \"test2\", \"id\": \"2\", \"desc\": \"3\"}]}";
-
-		util.processFile(rawJson);
-
 		String sqlStatement = "select id from items where name='tett'";
-		String result = util.executeQuery(sqlStatement, UnSql.EXPORT_FORMAT.JSON);
+		
+		String result = new UnSql(rawJson).withExportFormat(EXPORT_FORMAT.JSON).execute(sqlStatement);
 
 		assertEquals("{}", result);
 	}
